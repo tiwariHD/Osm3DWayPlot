@@ -1,6 +1,6 @@
 //Javascipt file for 3D plotting of OSM way data
 
-var waysData;
+var waysData = {};
 var nodesData = new Map();
 
 /*getNodes retrieves node history data for a node specified by nodeId;
@@ -141,6 +141,8 @@ function plotWay(wayId) {
   plotData[0] : latitude, plotData[1] : longitude,
   plotData[2] : timestamps, plotData[3] : color,
   */
+  waysData = {};
+  nodesData.clear();
   var plotData = [[], [], [], []];
 
   var statusText = "";
