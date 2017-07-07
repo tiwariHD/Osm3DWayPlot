@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <!-- Our .css file -->
+  <link rel="stylesheet" type="text/css" href="css/style.css"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- Plotly.js -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    jQuery.noConflict();
+  </script>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row content">
+    <div class="col-sm-3 sidenav">
+      <div class="startpage">
+        <h3>OSM Way History Plot</h1>
+      </div>
+      <!-- Form for bounding box and dropdown list -->
+      <form class="form_box" action="" accept-charset="UTF-8">
+        <h5>Enter bounding box details to get list of ways.</h5>
+        <div class="export_box">
+          <input id="maxlat" class="export_bound" name="maxlat" size="10" type="text" placeholder="maxlat">
+          <br>
+          <input id="minlon" class="export_bound" name="minlon" size="10" type="text" placeholder="minlon">
+          <input id="maxlon" class="export_bound" name="maxlon" size="10" type="text" placeholder="maxlon">
+          <br>
+          <br>
+          <input id="minlat" class="export_bound" name="minlat" size="10" type="text" placeholder="minlat">
+        </div>
+        <input type="button" value="Get Way ID List" onclick=getWayIDList()>
+        <br>
+        <br>
+        <select id="wayIdList">
+        </select>
+        <br>
+        <input type="button" value="Click to plot way" onclick=submitWayFromList()>
+      </form>
+      <br>
+      <!-- Form for way ID box -->
+      <form class="form_way" action="">
+        <h5>Or, Directly enter the way ID of the building.</h5>
+        <input id="wayID" name="wayID"  type="text" placeholder="way ID">
+        <br>
+        <input type="button" value="Click to plot way" onclick=submitWay() background-color=#555>
+      </form>
+      <br>
+      <br>
+      <!-- Status includes state, timing and other useful information -->
+      <div class="status_text">
+        <h4>Status:</h4>
+        <p id="status"></p>
+      </div>
+    </div>
+
+    <div id="myDiv" class="col-sm-9">
+    </div>
+  </div>
+</div>
+<!-- Our .js file containing source code for plotting -->
+<script type="text/javascript" src="js/plot.js"></script>
+
+<footer class="container-fluid">
+  <p>Footer Text</p>
+</footer>
+
+</body>
+</html>
