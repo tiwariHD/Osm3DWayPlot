@@ -9,7 +9,7 @@ var nodesData = new Map();
   returns none.
 */
 function getNodes(nodeId) {
-  var baseNodeUri = 'http://www.openstreetmap.org/api/0.6/node/';
+  var baseNodeUri = 'https://www.openstreetmap.org/api/0.6/node/';
 
   jQuery.ajax({
         url: baseNodeUri + nodeId + "/history",
@@ -30,7 +30,7 @@ function getNodes(nodeId) {
 */
 function getWays(wayId) {
 
-  var baseWayUri = 'http://www.openstreetmap.org/api/0.6/way/';
+  var baseWayUri = 'https://www.openstreetmap.org/api/0.6/way/';
   var wayLength = 0;
 
   jQuery.ajax({
@@ -246,7 +246,7 @@ function getWayIDList() {
   clearDropDownList(select);
 
   //using overpass api for fetching bounding box
-  var baseBBUri = 'http://overpass-api.de/api/map?bbox=';
+  var baseBBUri = 'https://overpass-api.de/api/map?bbox=';
   var osmUri = baseBBUri + left + ',' + bottom + ',' + right + ',' + top;
 
   jQuery.ajax({
