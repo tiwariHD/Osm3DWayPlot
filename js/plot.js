@@ -207,8 +207,6 @@ function plotWay(wayId) {
     statusText += "Total Time: " + (t2 - t1) / 1000 + " sec <br>";
     statusText += "Way ID: " + wayId + " plotted <br>";
     document.getElementById("status").innerHTML = statusText;
-
-    console.log(plotData);
   }
 }
 
