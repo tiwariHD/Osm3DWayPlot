@@ -202,6 +202,15 @@ function plotWay(wayId) {
       }
     }
 
+    if (versions == 1) {
+      var index = plotData[0].length - 1;
+      plotData[0].push(plotData[0][index]);
+      plotData[1].push(plotData[1][index]);
+      plotData[2].push(new Date());
+      plotData[3].push(plotData.length);
+      statusText += "***Versions=1, so added a reference point at last node with current timestamp***<br>";
+    }
+
     //plot function called now
     threeDPlot(wayId, versions, plotData);
 
