@@ -65,7 +65,7 @@ function getWays(wayId) {
 /*threeDPlot uses the library Plotly.js for 3D plotting;
   initializes the plot data and layout, then calls library plot function.
 */
-function threeDPlot(titleName, numVersions, plotData) {
+function threeDPlot(plotData, titleStr) {
 
     //data for 3D plot
     var data = [{
@@ -121,7 +121,7 @@ function threeDPlot(titleName, numVersions, plotData) {
           zeroline: false
         },
       },
-      title: "Way ID: " + titleName + ", Versions: " + numVersions,
+      title: titleStr,
       width: 954
     };
 
@@ -211,8 +211,12 @@ function plotWay(wayId) {
       statusText += "***Versions=1, so added a reference point at last node with current timestamp***<br>";
     }
 
+    var tagkey = waysData[0].getElementsByTagName("tag")[0].getAttribute("k");
+    var tagvalue = waysData[0].getElementsByTagName("tag")[0].getAttribute("v");
+    var titleStr = "Way ID: " + wayId + ", Versions: " + versions + ", " + tagkey + ": " + tagvalue;
+
     //plot function called now
-    threeDPlot(wayId, versions, plotData);
+    threeDPlot(plotData, titleStr);
 
     var t2 = new Date().getTime();
     statusText += "Total Time: " + (t2 - t1) / 1000 + " sec <br>";
