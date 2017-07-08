@@ -1,5 +1,5 @@
 # Osm3DWayPlot
-Javascript framework for 3D OSM way history plots
+Javascript solution for 3D OSM way history plots.
 
 Usage:
 1. Copy files locally, then simply run index.html on any modern web browser.
