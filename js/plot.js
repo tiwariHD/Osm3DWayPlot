@@ -47,7 +47,7 @@ function getWays(wayId) {
         var nds = waysData[i].getElementsByTagName("nd");
         for(var j = 0; j < nds.length; j++) {
 
-          var nodeId = nds[j].attributes.ref.nodeValue;
+          var nodeId = nds[j].getAttribute("ref");
           //if node history data is not present, then call getNodes
           if (nodesData.has(nodeId) == false) {
             getNodes(nodeId);
@@ -145,8 +145,7 @@ function plotWay(wayId) {
   nodesData.clear();
   var plotData = [[], [], [], []];
 
-  var statusText = "";
-  statusText += "Fetching way data..<br>";
+  var statusText = "Fetching way data..<br>";
   document.getElementById("status").innerHTML = statusText;
 
   //timing the api calls
@@ -243,8 +242,7 @@ function clearDropDownList(selectbox) {
 function getWayIDList() {
 
   //update status
-  var statusText = "";
-  statusText += "Fetching way list data..<br>";
+  var statusText = "Fetching way list data..<br>";
   document.getElementById("status").innerHTML = statusText;
   var t1 = new Date().getTime();
 
