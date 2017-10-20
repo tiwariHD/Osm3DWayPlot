@@ -23,7 +23,7 @@ function getNodes(nodeId) {
     }).done(function(data) {
       nodesData.set(nodeId, data);
     }).fail(function(error) {
-        console.log("getNodes: " + error);
+        alert("Error fetching node: " + nodeId);
     });
 }
 
@@ -62,7 +62,7 @@ function getWays(wayId, fetchNodes = true) {
         }
       }
     }).fail(function(error) {
-      alert("Error fetching way data!!");
+      alert("Error fetching way: " + wayId);
       return 0;
     });
 
@@ -280,7 +280,6 @@ function getWayIDList(showList = true) {
         async: false,
     }).done(function(data) {
       var ways = data.getElementsByTagName("way");
-      //console.log("Length: " + ways.length);
       for(var i = 0; i < ways.length; i++) {
         var wId = ways[i].getAttribute("id");
         waysList.push(wId);
@@ -338,12 +337,11 @@ function plotShiftedWay(wayId) {
     var nds = waysData[0].getElementsByTagName("nd");
     for(var i = 0; i < nds.length; i++) {
       var nodeCord = getShiftNodes(nds[i].getAttribute("ref"));
-      //console.log(nodeCord);
       wayShiftData0.push(nodeCord[0]);
       wayShiftData1.push(nodeCord[1]);
     }
-    console.log(wayShiftData0[0], wayShiftData0[1]);
-    console.log(wayShiftData1[0], wayShiftData1[1]);
+    //console.log(wayShiftData0[0], wayShiftData0[1]);
+    //console.log(wayShiftData1[0], wayShiftData1[1]);
 
     //load the data for plotting
     for(var i = 0; i < wayShiftData0.length; i++) {
@@ -404,7 +402,7 @@ function getShiftNodes(nodeId) {
       }
 
     }).fail(function(error) {
-        console.log("getNodes: " + error);
+        alert("Error fetching node: " + nodeId);
     });
 
     return retVal;
@@ -492,7 +490,7 @@ function checkWayShift(nds) {
     if (Math.abs(d1 - d2) > tol) {
       return false;
     }
-    console.log("Diff: " + i + " = " + Math.abs(d1 - d2) + ", d1: " + d1 + ", d2: " + d2);
+    //console.log("Diff: " + i + " = " + Math.abs(d1 - d2) + ", d1: " + d1 + ", d2: " + d2);
   }
 
   // true case, shift distance and bearing information saved in global var
@@ -575,18 +573,6 @@ function checkWay(wayId) {
     return retVal;
 }
 
-/*For 8.6528,8.7294, 49.3683,49.4376, shifted ways:
-25208646,36208802,80277574,87204801,87412899,87728318,87728549,87728681,
-87728712,88230330,88316016,90139777,90139828,90234697,90242372,90868121,91062574,
-91065608,91091899,91092022,91097335,91234247,91234279,91237825,91237964,91598855,
-91598874,91598969,92158515,92158530,92158541,92158550,92158559,92158614,92158616,
-92512481,92512537,92512596,92512612,92512682,92512729,92512739,92512802,92525395,
-92525475,92525484,92525485,92525554,92719073,92719086,92725988,92725990,92726025,
-92729559,92729669,92729702,92729736,92729747,92849386,93350723,93353565,93353593,
-93394030,93880448,96690371,97953631,98231021,98231078,99071036,99071174,99071226,
-99905731,99905961,99907069,100525157,100525172,100525174,100525187,101815550,
-101815563,101815710,101815726,101815803,123816105 */
-
 /*getShiftedWayIDList calls getWayIDList() to load all the ways in
   in the bounding box specified;
   then checks all the ways to find shifted ways;
@@ -616,7 +602,7 @@ function getShiftedWayIDList() {
       el.value = wId;
       select.appendChild(el);
       count++;
-      console.log("Found a shifted way, no: ", count);
+      //console.log("Found a shifted way, no: ", count);
     }
   }
 
@@ -624,6 +610,12 @@ function getShiftedWayIDList() {
   statusText += "Ways with single version: " + singleWays + "<br>";
   document.getElementById("status").innerHTML = statusText;
 }
+
+/*For 8.6656,8.7123,49.4064,49.4273:
+  Total ways: 11958
+  Single version ways: 4298
+  Shifted ways: 358
+  25208389,25208646,25208647,25208648,25208649,25208650,25208651, .....*/
 
 /*shiftedWayFromList retrieves wayId from dropdown list and calls plotShiftedWay
 */
