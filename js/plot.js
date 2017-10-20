@@ -2,6 +2,11 @@
 
 var waysData = {};
 var nodesData = new Map();
+var waysList = [];
+var shiftedWaysL = [];
+var singleWays = 0;
+var shiftDistance = 0.0;
+var shiftBearing = 0.0;
 
 /*getNodes retrieves node history data for a node specified by nodeId;
   calls OSM api using jQuery;
@@ -28,7 +33,7 @@ function getNodes(nodeId) {
   stores way data to gloabl variable;
   returns no. of versions of ways.
 */
-function getWays(wayId) {
+function getWays(wayId, fetchNodes = true) {
 
   var baseWayUri = 'https://www.openstreetmap.org/api/0.6/way/';
   var wayLength = 0;
@@ -41,16 +46,18 @@ function getWays(wayId) {
       //get way data for all versions
       waysData = data.getElementsByTagName("way");
       wayLength = waysData.length;
-      for(var i = 0; i < wayLength; i++) {
+      if (fetchNodes) {
+        for(var i = 0; i < wayLength; i++) {
 
-        //for each version, get it's list of nodes
-        var nds = waysData[i].getElementsByTagName("nd");
-        for(var j = 0; j < nds.length; j++) {
+          //for each version, get it's list of nodes
+          var nds = waysData[i].getElementsByTagName("nd");
+          for(var j = 0; j < nds.length; j++) {
 
-          var nodeId = nds[j].getAttribute("ref");
-          //if node history data is not present, then call getNodes
-          if (nodesData.has(nodeId) == false) {
-            getNodes(nodeId);
+            var nodeId = nds[j].getAttribute("ref");
+            //if node history data is not present, then call getNodes
+            if (nodesData.has(nodeId) == false) {
+              getNodes(nodeId);
+            }
           }
         }
       }
@@ -210,9 +217,14 @@ function plotWay(wayId) {
       statusText += "***Versions=1, so added a reference point at last node with current timestamp***<br>";
     }
 
-    var tagkey = waysData[0].getElementsByTagName("tag")[0].getAttribute("k");
-    var tagvalue = waysData[0].getElementsByTagName("tag")[0].getAttribute("v");
-    var titleStr = "Way ID: " + wayId + ", Versions: " + versions + ", " + tagkey + ": " + tagvalue;
+    var titleStr = "";
+    if (waysData[0].getElementsByTagName("tag")[0]) {
+      var tagkey = waysData[0].getElementsByTagName("tag")[0].getAttribute("k");
+      var tagvalue = waysData[0].getElementsByTagName("tag")[0].getAttribute("v");
+      titleStr = "Way ID: " + wayId + ", Versions: " + versions + ", " + tagkey + ": " + tagvalue;
+    } else {
+      titleStr = "Way ID: " + wayId + ", Versions: " + versions + ", No tags!";
+    }
 
     //plot function called now
     threeDPlot(plotData, titleStr);
@@ -239,7 +251,9 @@ function clearDropDownList(selectbox) {
   returns way list;
   also updates status information.
 */
-function getWayIDList() {
+function getWayIDList(showList = true) {
+
+  waysList.length = 0;
 
   //update status
   var statusText = "Fetching way list data..<br>";
@@ -268,10 +282,14 @@ function getWayIDList() {
       var ways = data.getElementsByTagName("way");
       //console.log("Length: " + ways.length);
       for(var i = 0; i < ways.length; i++) {
-        var el = document.createElement("option");
-        el.textContent = ways[i].getAttribute("id");
-        el.value = ways[i].getAttribute("id");
-        select.appendChild(el);
+        var wId = ways[i].getAttribute("id");
+        waysList.push(wId);
+        if (showList) {
+          var el = document.createElement("option");
+          el.textContent = wId
+          el.value = wId
+          select.appendChild(el);
+        }
       }
       statusText += ways.length + " ways fetched. <br>";
     }).fail(function(error) {
@@ -283,6 +301,338 @@ function getWayIDList() {
   document.getElementById("status").innerHTML = statusText;
 }
 
+/*plotShiftedWay is a special plotting function for shifted ways;
+  unlike plotWay all versions of ways, instead it plots only two versions
+  which have the first and last versions of nodes.
+  calls threeDPlot for plotting and also updates status.
+*/
+function plotShiftedWay(wayId) {
+
+  //Reseting plot data
+  Plotly.purge(myDiv);
+  /*plotData has 4 arrays for:
+  plotData[0] : latitude, plotData[1] : longitude,
+  plotData[2] : timestamps, plotData[3] : color,
+  */
+  waysData = {};
+  nodesData.clear();
+  var plotData = [[], [], [], []];
+
+  var statusText = "Fetching way data..<br>";
+  document.getElementById("status").innerHTML = statusText;
+
+  //timing the api calls
+  var t1 = new Date().getTime();
+  var versions = getWays(wayId, false);
+  var t2 = new Date().getTime();
+  statusText += "Time taken to fetch: " + (t2 - t1) / 1000 + " sec <br>";
+
+
+  //if getWays fails then does not call the plotting function
+  if (versions > 1) {
+
+    //collects node data for each way version and pushes to plotData
+    var wayShiftData0 = [];
+    var wayShiftData1 = [];
+
+    var nds = waysData[0].getElementsByTagName("nd");
+    for(var i = 0; i < nds.length; i++) {
+      var nodeCord = getShiftNodes(nds[i].getAttribute("ref"));
+      //console.log(nodeCord);
+      wayShiftData0.push(nodeCord[0]);
+      wayShiftData1.push(nodeCord[1]);
+    }
+    console.log(wayShiftData0[0], wayShiftData0[1]);
+    console.log(wayShiftData1[0], wayShiftData1[1]);
+
+    //load the data for plotting
+    for(var i = 0; i < wayShiftData0.length; i++) {
+      plotData[0].push(wayShiftData0[i][0]);
+      plotData[1].push(wayShiftData0[i][1]);
+      plotData[2].push(new Date(waysData[0].getAttribute("timestamp")));
+      plotData[3].push(1);
+    }
+    for(var i = 0; i < wayShiftData1.length; i++) {
+      plotData[0].push(wayShiftData1[i][0]);
+      plotData[1].push(wayShiftData1[i][1]);
+      plotData[2].push(new Date(waysData[waysData.length - 1].getAttribute("timestamp")));
+      plotData[3].push(2);
+    }
+
+    var titleStr = "";
+    if (waysData[0].getElementsByTagName("tag")[0]) {
+      var tagkey = waysData[0].getElementsByTagName("tag")[0].getAttribute("k");
+      var tagvalue = waysData[0].getElementsByTagName("tag")[0].getAttribute("v");
+      titleStr = "Way ID: " + wayId + ", Versions: " + versions + ", " + tagkey + ": " + tagvalue;
+    } else {
+      titleStr = "Way ID: " + wayId + ", Versions: " + versions + ", No tags!";
+    }
+
+    //plot function called now
+    threeDPlot(plotData, titleStr);
+
+    var t2 = new Date().getTime();
+    statusText += "Total Time: " + (t2 - t1) / 1000 + " sec <br>";
+    statusText += "Way ID: " + wayId + " plotted <br>";
+    document.getElementById("status").innerHTML = statusText;
+  } else {
+    alert("No of versions is 1 !!");
+  }
+}
+
+/*getShiftNodes fetches node information and returns the node value of it's
+  first and last version;
+  returns array.
+*/
+function getShiftNodes(nodeId) {
+  var baseNodeUri = 'https://www.openstreetmap.org/api/0.6/node/';
+  var retVal = [[], []];
+
+  jQuery.ajax({
+        url: baseNodeUri + nodeId + "/history",
+        type: 'GET',
+        async: false,
+    }).done(function(data) {
+      var temp = data.getElementsByTagName("node");
+      retVal[0].push(temp[0].getAttribute("lat"));
+      retVal[0].push(temp[0].getAttribute("lon"));
+      if (temp.length == 1) {
+        retVal[1] = retVal[0];
+      } else {
+        retVal[1].push(temp[temp.length - 1].getAttribute("lat"));
+        retVal[1].push(temp[temp.length - 1].getAttribute("lon"));
+      }
+
+    }).fail(function(error) {
+        console.log("getNodes: " + error);
+    });
+
+    return retVal;
+}
+
+/*radians converts from degrees to randians
+*/
+function radians(n) {
+  return n * (Math.PI / 180);
+}
+
+/*degrees converts from radians to degrees
+*/
+function degrees(n) {
+  return n * (180 / Math.PI);
+}
+
+/*getDistanceFromLatLon calculates distance between two coordinates;
+  returns ditance in metres.
+*/
+function getDistanceFromLatLon(lat1,lon1,lat2,lon2) {
+  var R = 6371008; // Radius of the earth in m
+  var dLat = radians(lat2-lat1);  // deg2rad below
+  var dLon = radians(lon2-lon1);
+  var a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(radians(lat1)) * Math.cos(radians(lat2)) *
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ;
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  var d = R * c; // Distance in m
+  return d;
+}
+
+/*getBearing calculates the direction of change between two coordinates;
+  returns bearing in degrees.
+*/
+function getBearing(startLat,startLong,endLat,endLong){
+  startLat = radians(startLat);
+  startLong = radians(startLong);
+  endLat = radians(endLat);
+  endLong = radians(endLong);
+
+  var dLong = endLong - startLong;
+
+  var dPhi = Math.log(Math.tan(endLat/2.0+Math.PI/4.0)/Math.tan(startLat/2.0+Math.PI/4.0));
+  if (Math.abs(dLong) > Math.PI){
+    if (dLong > 0.0)
+       dLong = -(2.0 * Math.PI - dLong);
+    else
+       dLong = (2.0 * Math.PI + dLong);
+  }
+
+  return (degrees(Math.atan2(dLong, dPhi)) + 360.0) % 360.0;
+}
+
+/*checkWayShift checks for shift between first and last versions of a way;
+  it compares distances between two corresponding nodes of a version with
+  another, which for successfull case should be same;
+  returns true or false.
+*/
+function checkWayShift(nds) {
+  var wayShiftData0 = [];
+  var wayShiftData1 = [];
+
+  for(var i = 0; i < nds.length; i++) {
+    var nodeCord = getShiftNodes(nds[i].getAttribute("ref"));
+    if ((nodeCord[0][0] == nodeCord[1][0]) && (nodeCord[0][1] == nodeCord[1][1])) {
+      //no shift in nodes
+      return false;
+    } else {
+        wayShiftData0.push(nodeCord[0]);
+        wayShiftData1.push(nodeCord[1]);
+    }
+  }
+
+  //distances denote distance between two nodes of same version of way
+  for(var i = wayShiftData0.length - 1; i > 0; i--) {
+    var d1 = getDistanceFromLatLon(wayShiftData0[i][0], wayShiftData0[i][1],
+    wayShiftData0[i-1][0], wayShiftData0[i-1][1]);
+    var d2 = getDistanceFromLatLon(wayShiftData1[i][0], wayShiftData1[i][1],
+    wayShiftData1[i-1][0], wayShiftData1[i-1][1]);
+
+    var tol = 1e-2; // 1 cm
+    if (Math.abs(d1 - d2) > tol) {
+      return false;
+    }
+    console.log("Diff: " + i + " = " + Math.abs(d1 - d2) + ", d1: " + d1 + ", d2: " + d2);
+  }
+
+  // true case, shift distance and bearing information saved in global var
+  shiftDistance = getDistanceFromLatLon(wayShiftData0[0][0], wayShiftData0[0][1],
+  wayShiftData1[0][0], wayShiftData1[0][1]);
+  shiftBearing = getBearing(wayShiftData0[0][0], wayShiftData0[0][1],
+  wayShiftData1[0][0], wayShiftData1[0][1]);
+  return true;
+}
+
+/*checkSameNodes compares nodes between two versions of a way
+  returns true or false.
+*/
+function checkSameNodes(nds1, nds2) {
+
+  //check for same no of nodes
+  if (nds1.length != nds2.length) {
+    return false;
+  }
+
+  //compare names of both versions
+  for(var i = 0; i < nds1.length; i++) {
+    if (nds1[i].getAttribute("ref") != nds2[i].getAttribute("ref")) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/*checkWay fetches way data and calls checkWayShift if the no of
+  nodes is same in all the way versions;
+  returns true or false.
+*/
+function checkWay(wayId) {
+
+  var baseWayUri = 'https://www.openstreetmap.org/api/0.6/way/';
+  var wayLength = 0;
+  var retVal = false;
+  var sameNodes = true;
+  var tempWays = {};
+
+  jQuery.ajax({
+        url: baseWayUri + wayId + "/history",
+        type: 'GET',
+        async: false,
+    }).done(function(data) {
+      //get way data for all versions
+      tempWays = data.getElementsByTagName("way");
+      wayLength = tempWays.length;
+      if(wayLength == 1) {
+        singleWays += 1;
+      } else {
+        //first check no of nodes in each version
+        var nds1 = tempWays[0].getElementsByTagName("nd");
+        for(var i = 1; i < wayLength; i++) {
+
+          //for each version, get it's list of nodes
+          var nds2 = tempWays[i].getElementsByTagName("nd");
+          //check for same set of nodes
+          if (checkSameNodes(nds1, nds2) == false) {
+            sameNodes = false;
+            break;
+          }
+        }
+        //after this step we get ways with same nodes
+        if (sameNodes == true) {
+          if (checkWayShift(nds1) == true) {
+            retVal = true;
+          } else {
+            //console.log("node same but not shifted, Id: ", wayId);
+          }
+        }
+      }
+    }).fail(function(error) {
+      alert("Error fetching way data!!");
+      return false;
+    });
+
+    return retVal;
+}
+
+/*For 8.6528,8.7294, 49.3683,49.4376, shifted ways:
+25208646,36208802,80277574,87204801,87412899,87728318,87728549,87728681,
+87728712,88230330,88316016,90139777,90139828,90234697,90242372,90868121,91062574,
+91065608,91091899,91092022,91097335,91234247,91234279,91237825,91237964,91598855,
+91598874,91598969,92158515,92158530,92158541,92158550,92158559,92158614,92158616,
+92512481,92512537,92512596,92512612,92512682,92512729,92512739,92512802,92525395,
+92525475,92525484,92525485,92525554,92719073,92719086,92725988,92725990,92726025,
+92729559,92729669,92729702,92729736,92729747,92849386,93350723,93353565,93353593,
+93394030,93880448,96690371,97953631,98231021,98231078,99071036,99071174,99071226,
+99905731,99905961,99907069,100525157,100525172,100525174,100525187,101815550,
+101815563,101815710,101815726,101815803,123816105 */
+
+/*getShiftedWayIDList calls getWayIDList() to load all the ways in
+  in the bounding box specified;
+  then checks all the ways to find shifted ways;
+  also updates status information.
+*/
+function getShiftedWayIDList() {
+
+  getWayIDList(false);
+
+  var statusText = "Total ways: " + waysList.length + "<br>";
+  statusText += "Fetching shifted way list..<br>";
+  document.getElementById("status").innerHTML = statusText;
+
+  singleWays = 0;
+  var count = 0;
+  //select and clear drop down list before populating
+  var select = document.getElementById("wayIdList");
+  clearDropDownList(select);
+
+  for(var i = 0; i < waysList.length; i++) {
+    var wId = waysList[i];
+
+    if(checkWay(wId) == true) {
+      shiftedWaysL.push(wId);
+      var el = document.createElement("option");
+      el.textContent = wId;
+      el.value = wId;
+      select.appendChild(el);
+      count++;
+      console.log("Found a shifted way, no: ", count);
+    }
+  }
+
+  statusText += "Ways with shift: " + count + "<br>";
+  statusText += "Ways with single version: " + singleWays + "<br>";
+  document.getElementById("status").innerHTML = statusText;
+}
+
+/*shiftedWayFromList retrieves wayId from dropdown list and calls plotShiftedWay
+*/
+function shiftedWayFromList() {
+  var wayList = document.getElementById("wayIdList");
+  var wayId = wayList.options[wayList.selectedIndex].value;
+  plotShiftedWay(wayId);
+}
+
 /*submitWayFromList retrieves wayId from dropdown list and calls plotWay
 */
 function submitWayFromList() {
@@ -291,11 +641,35 @@ function submitWayFromList() {
   plotWay(wayId);
 }
 
-/*submitWayFromList retrieves wayId from text box and calls plotWay
+/*submitWay retrieves wayId from text box and calls plotWay
 */
 function submitWay() {
   var wayId = document.getElementById("wayID").value;
   plotWay(wayId);
+}
+
+/*checkWayShifted retrieves wayId from text box and checks for shift
+*/
+function checkWayShifted() {
+  var wayId = document.getElementById("wayIDShift").value;
+  var statusText = "Checking way ID: " + wayId + " for shift..<br>";
+  document.getElementById("status").innerHTML = statusText;
+
+  if(checkWay(wayId) == true) {
+    statusText += "Way is shifted!!<br>" ;
+    statusText += "Shift distance: " + shiftDistance.toFixed(2) + " m<br>";
+    statusText += "Bearing: " + shiftBearing.toFixed(2) + " deg<br>";
+  } else {
+    statusText += "Way does not shift!!<br>" ;
+  }
+  document.getElementById("status").innerHTML = statusText;
+}
+
+/*submitWayShifted retrieves wayId from text box and calls plotShiftedWay
+*/
+function submitWayShifted() {
+  var wayId = document.getElementById("wayIDShift").value;
+  plotShiftedWay(wayId);
 }
 
 /*function to clear the 3D plot before reloading

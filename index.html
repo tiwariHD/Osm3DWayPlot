@@ -23,6 +23,7 @@
       <div class="startpage">
         <h3>OSM 3D Way History Plot</h1>
       </div>
+      <br>
       <!-- Form for bounding box and dropdown list -->
       <form class="form_box" action="" accept-charset="UTF-8">
         <h5>Enter bounding box details to get list of ways.</h5>
@@ -35,13 +36,16 @@
           <br>
           <input id="minlat" class="export_bound" name="minlat" size="10" type="text" placeholder="minlat">
         </div>
-        <input type="button" value="Get Way ID List" onclick=getWayIDList()>
         <br>
+        <input id="wayidbtn" type="button" value="Get Way ID List" onclick=getWayIDList()>
+        <input id="wayidshbtn" type="button" value="Get shifted ways" onclick=getShiftedWayIDList()>
         <br>
         <select id="wayIdList">
         </select>
         <br>
-        <input type="button" value="Click to plot way" onclick=submitWayFromList()>
+        <input id="pltWay" type="button" value="Click to plot way" onclick=submitWayFromList()>
+        <input id="pltShiftWay" type="button" value="Plot Shifted way" onclick=shiftedWayFromList()>
+        <br>
       </form>
       <br>
       <!-- Form for way ID box -->
@@ -49,9 +53,15 @@
         <h5>Or, Directly enter the way ID of the building.</h5>
         <input id="wayID" name="wayID"  type="text" placeholder="way ID">
         <br>
-        <input type="button" value="Click to plot way" onclick=submitWay() background-color=#555>
+        <input id="pltWay" type="button" value="Click to Plot way" onclick=submitWay()>
+        <br> <br>
+        <h5>Check way ID for shift and plot.</h5>
+        <input id="wayIDShift" name="wayIDShift"  type="text" placeholder="way ID">
+        <br>
+        <input id="checkWayShift" type="button" value="Check for way Shift" onclick=checkWayShifted()>
+        <input id="pltShiftWay" type="button" value="Plot Shifted way" onclick=submitWayShifted()>
+        <br>
       </form>
-      <br>
       <br>
       <!-- Status includes state, timing and other useful information -->
       <div class="status_text">

@@ -11,14 +11,18 @@
 
 .form_box {
   padding: 10px;
+  background-color: #e6e6ff;
+  margin-top: -5px;
 }
 
 .form_way {
   padding: 10px;
+  background-color: #d9f2e6;
+  margin-top: -5px;
 }
 
 .form_box .export_box {
-  background: #eee;
+  background: #e0e0d1;
   border: 1px solid #ccc;
   border-radius: 3px;
   text-align: center;
@@ -46,6 +50,31 @@
   margin: 5px;
 }
 
+.form_box #wayidbtn {
+  float: left;
+  margin-left: -1px;
+}
+
+.form_box #wayidshbtn {
+  float: right;<br>
+  margin-right: -1px;
+}
+
+#pltWay {
+  float: left;
+  margin-left: -1px;
+}
+
+#checkWayShift {
+  float: left;
+  margin-left: -1px;
+}
+
+#pltShiftWay {
+  float: right;<br>
+  margin-right: -1px;
+}
+
 .startpage {
   background-color: #555;
   color: white;
@@ -54,7 +83,7 @@
 
 .status_text {
   padding: 10px;
-  background: #eee;
+  background: #e0e0d1;
   border: 1px solid #ccc;
   border-radius: 3px;
 }
@@ -62,6 +91,7 @@
 select {
   width: 100%;
 }
+
 
 /* Set black background color, white text and some padding */
 footer {
